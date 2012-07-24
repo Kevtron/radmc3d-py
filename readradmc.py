@@ -8,9 +8,8 @@
 #---------------------------------------------------------------------------
 #---------------------------------------------------------------------------
 #---------------------------------------------------------------------------
-
-
-
+import numpy as np
+import matplotlib.pylab as plt
 #---------------------------------------------------------------------------
 #---------------------------------------------------------------------------
 #           		     ROUTINES FOR IMAGES
@@ -21,5 +20,20 @@
 #                     READ THE RECTANGULAR TELESCOPE IMAGE
 #---------------------------------------------------------------------------
 
-def readimage():
+def readimage(filename=None, ):
+	if filename is None:
+		filename='image.out'
+	f=open(filename)
+	#iformat=int(f.readlines()[0])
+	lines=f.readlines()
+	iformat=int(lines[0])
+	nx,ny=lines[1].split()
+	nf=int(lines[2])
+	sizepix_x,sizepix_y=lines[3].split()
+	wavelength=lines[4]
+	image=lines[6:-1]
+	print image[1]
+	print sizepix_y
 	
+if __name__ == "__main__":
+	readimage()	
