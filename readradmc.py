@@ -52,5 +52,10 @@ def readimage(filename=None, imagefile=None ):
 		imagefile="image.png"
 	fig.savefig(imagefile)
 	plt.show()
+#---------------------------------------------------------------------------
+# 	Let's get fancy and call radmc3d from inside python
+#---------------------------------------------------------------------------
+def makeimage()
+
 if __name__ == "__main__":
 	readimage()
