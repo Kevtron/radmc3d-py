@@ -52,10 +52,34 @@ def readimage(filename=None, imagefile=None ):
 		imagefile="image.png"
 	fig.savefig(imagefile)
 	plt.show()
+
+#---------------------------------------------------------------------------
+#               read and plot the spectrum
+#---------------------------------------------------------------------------
+def B_lambda(T,wavelength):
+	h=6.62606957e-27
+	c=29979245800
+	kb=1.3806488e-16
+	return (2.0*h*c**2/wavelength**5)*(1.0/(np.exp(h*c/(wavelength*kb*T))-1.0)) 
+def readspectrum(filename = None, imagefile = None):
+	if filename is None:
+		filename = 'spectrum.out'
+	f = open(filename)
+	lines = f.readlines()
+	nlam = int(lines[1])
+	wavelength = np.zeros(nlam)
+	flux = np.zeros(nlam)
+	for i in range(nlam):
+		wavelength[i],flux[i] = lines[i+3].split()
+	plt.loglog(wavelength,flux,'r-')
+	plt.loglog(wavelength,B_lambda(4000,wavelength),'b-')
+	plt.show()
+
 #---------------------------------------------------------------------------
 # 	Let's get fancy and call radmc3d from inside python
 #---------------------------------------------------------------------------
-def makeimage()
+#def makeimage():
 
 if __name__ == "__main__":
 	readimage()
+	#readspectrum()
