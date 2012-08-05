@@ -51,7 +51,8 @@ def readimage(filename=None, imagefile=None ):
 	if imagefile is None:
 		imagefile="image.png"
 	fig.savefig(imagefile)
-	plt.show()
+	#plt.show()
+	return 
 
 #---------------------------------------------------------------------------
 #               read and plot the spectrum
@@ -61,6 +62,7 @@ def B_lambda(T,wavelength):
 	c=29979245800
 	kb=1.3806488e-16
 	return (2.0*h*c**2/wavelength**5)*(1.0/(np.exp(h*c/(wavelength*kb*T))-1.0)) 
+
 def readspectrum(filename = None, imagefile = None):
 	if filename is None:
 		filename = 'spectrum.out'
@@ -71,8 +73,9 @@ def readspectrum(filename = None, imagefile = None):
 	flux = np.zeros(nlam)
 	for i in range(nlam):
 		wavelength[i],flux[i] = lines[i+3].split()
+	wave=np.logspace(-1,12,num=300)
 	plt.loglog(wavelength,flux,'r-')
-	plt.loglog(wavelength,B_lambda(4000,wavelength),'b-')
+	plt.loglog(wave,B_lambda(4000,wave*10**-4),'b-')
 	plt.show()
 
 #---------------------------------------------------------------------------
@@ -81,5 +84,9 @@ def readspectrum(filename = None, imagefile = None):
 #def makeimage():
 
 if __name__ == "__main__":
-	readimage()
-	#readspectrum()
+	#readimage('image_U.out', 'image_U.png')
+	#readimage('image_B.out', 'image_B.png')
+	#readimage('image_V.out', 'image_V.png')
+	#readimage('image_R.out', 'image_R.png')
+	#readimage('image_I.out', 'image_I.png')
+	readspectrum()
