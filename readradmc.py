@@ -75,7 +75,7 @@ def readspectrum(filename = None, imagefile = None):
 		wavelength[i],flux[i] = lines[i+3].split()
 	wave=np.logspace(-1,12,num=300)
 	plt.loglog(wavelength,flux,'r-')
-	plt.loglog(wave,B_lambda(4000,wave*10**-4),'b-')
+	#plt.loglog(wave,B_lambda(4000,wave*10**-4),'b-')
 	plt.show()
 
 #---------------------------------------------------------------------------
