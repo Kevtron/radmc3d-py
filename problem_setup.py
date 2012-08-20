@@ -1,6 +1,7 @@
 import numpy as np
 import math
 import progressbar as pbar
+import operator
 progress = pbar.ProgressBar()
 
 def readDensity(densfile):
@@ -23,17 +24,17 @@ def readDensity(densfile):
 def writeDensities(density,nx,ny,nz)
 	dust=open('dust_density.inp','w')
 	stars=open('stellarsrc_density.inp','w')
-	dust.write(1)
-	dust.write(nx*ny*nz)
-	dust.write(1)
-	stars.write(1)
-	stars.write(nx*ny*nz)
-	stars.write(1)
+	dust.write('1\n')
+	dust.write('%d\n' % nx*ny*nz)
+	dust.write('1\n')
+	stars.write('1\n')
+	stars.write('%d\n' % nx*ny*nz)
+	stars.write('1\n')
 	for iz in range(nz):
 		for iy in range(ny):
 			for ix in range(nx):
-				dust.write(density[ix,iy,iz])
-				stars.write(density[ix,iy,iz])
+				dust.write('%f\n' % density[ix,iy,iz])
+				stars.write('%f\n' % density[ix,iy,iz])
 	dust.close()
 	stars.close()
 	return
@@ -90,9 +91,9 @@ def readTemperature(tempfile,MH,KB):
 
 def writeTemperature(temperature,nx,ny,nz)
 	temp=open('dust_temperature.dat')
-	temp.write(1)
-	temp.write(nx*ny*nz)
-	temp.write(1)
+	temp.write('1\n')
+	temp.write('%f\n' % nx*ny*nz)
+	temp.write('1\n')
 	for iz in range(nz):
 		for iy in range(ny):
 			for ix in range(nx):
@@ -117,9 +118,9 @@ def makeWavelength():
 	# Print wavelength.pinp
 	#
 	f=open('wavelength_micron.inp','w')
-	f.write('\t%d\n' % len(lam12))
+	f.write('%d\n' % len(lam12))
 	for i in range(len(lam12)):
-	f.write('\t%3.9f\n' % lam12[i])
+	f.write('%f\n' % lam12[i])
 	f.close()
 	return lam12,len(lam12)
 
@@ -135,6 +136,17 @@ def stellarTemplate(lam,nlam,nx,ny,nz,tstar,RS,MS):
 	template.close()
 	return
 	
+def dustOpacity(filename)
+	ifile = open(filename,'r')
+	ofile = open('dustkappa_starstuff.inp','w')	
+	itemp=ifile.readlines()
+	wav=reduce(operator.add, [[float(itemp[2+j].split()[i]) for i in range(9)] for j in range(106)]) 	
+	wav.append(float(itemp[109]))
+	totalopacity=float(itemp[110].split()[7])
+	opacity=reduce(operator.add, [[float(itemp[111+j].split()[i]) for i in range(6)] for j in range(357)])
+	[ofile.write('%f %f %f\n' % wav[i], opacity[2*i]*totalopacity, opacity[2*i+1]*totalopacity) for i in range(len(wav))]
+	ifile.close()
+	ofile.close()
 #Physical Constants
 #
 AU = 1.49598e13 # Astronomical Unit 	[cm]
