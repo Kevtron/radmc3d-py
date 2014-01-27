@@ -1,0 +1,226 @@
+=======================================================================
+A DESCRIPTION OF THE DIFFERENT DIRECTORIES AND PROGRAMS TO SET UP,
+RELAX, AND EVOLVE BINARY STARS USING GHOST PARTICLES (OR NOT). 
+
+CPL 2010
+
+Additional notes AIS May 2012
+=======================================================================
+
+-- need to use orca; could possibly use iqaluk but have not tested yet (May 2012)
+
+-- to compile on orca in general: ifort -g -mcmodel=medium -shared-intel -openmp program.f -o program
+
+-- run script for orca:
+
+#!/bin/csh
+
+limit coredumpsize 0
+limit stacksize unlimited
+limit datasize unlimited
+
+setenv OMP_SCHEDULE "guided,1"
+setenv KMP_STACKSIZE 30000000
+
+sqsub --mpp 16g -q threaded -n [4 to 24] -o out.log -e err.log -r 7d ./sph_tree_P evolution FLAGFILE
+
+
+
+--------------------------------------------------------------------------------
+Directory Initial/  
+--------------------------------------------------------------------------------
+- density3.f   : sets up fully modeled single stars using theoretical
+                 models. 
+		 INPUT: theoretical model, h0, npm
+
+- make_relax.f : uses two input single stars and merges them into a
+                 single file ready for use in the SPH code. 
+		 INPUT: file1, file2, file3, sep0, iread, npm
+
+- make_binary.f: uses relaxed binaries as input. Given an angular
+                 velocity, as determined from the relaxation
+                 procedure, assigns the right velocity to fully
+                 modeled stars and prepares them for a full
+                 simulation. 
+		 INPUT: file1, file3, angvel
+
+- make_two_ghosts2.f: uses fully-modeled binaries as input. Need to
+  		      input the radii of both boundaries as well as
+  		      angular velocity. Will remove the core particles
+  		      and replace with ghosts and central point
+  		      mass. The stars are then ready for a binary
+  		      simulation with ghost particles. 
+		      INPUT: file1,file3, r1, r2, ecc, angvel
+
+
+
+--------------------------------------------------------------------------------
+Directory SPH/source
+--------------------------------------------------------------------------------
+
+- use 'make -f Makefile' to compile in serial 
+- use 'make -f Makefile_P' to compile in parallel (currently set up for orca, May 2012)
+
+--------------------------------------------------------------------------------
+Directory SPH/
+--------------------------------------------------------------------------------
+- flag file:
+
+            first line: filename for run output information
+
+            2nd line  : filename for actual simulation (binary format)
+                        data (7 character long, last 3 need to be numbers) 
+
+       	    gangvel :  angular velocity of ghost particle. Set it to
+	              what the relaxation procedure yields
+
+       	    itorques: include (1) or not (0) all the torques in the
+                      input/output files -- set to zero
+
+            iback   : include back reaction from ghosts (see
+                      forcei_P2.f)
+
+            ipmfix  : no forces on point mass (see forcepm_P_re2.f)
+
+            ibound  : type of boundary conditions
+                      0- none
+                      1- cartesian
+                      2- cylindrical
+                      3- spherical
+                      4- ghost particles for single star
+                      5- ghost particles for two stars 
+            
+	    iexf    : 8- for binary relaxation procedure
+
+            rmind/rmind2: radii of boundaries (for ibound=4 and 5)
+
+
+
+
+--------------------------------------------------------------------------------
+PROCEDURE FOR SPH CODE
+--------------------------------------------------------------------------------
+- Relaxing a single star: 1- use density3.f to create a full
+                             star. Specify which models to use and the
+                             initial smoothing length (h0). Also,
+                             specify the name of the output file
+                             (search for an "open" statement), whether
+                             you want a central point mass or not
+                             (search for "npm") and if you wish to
+                             include torques (itorq=0 or 1).  
+
+			  2- copy file to SPH/ and modify flag file
+                             accordingly. In particular, you may
+                             choose to keep the central point mass
+                             fixed (ipmfix=1) and use some damping
+                             (value b/w 0 and 1.0 is usually good) 
+                             Typical single star relaxation is for ~20
+                             dyn. times (to be set in flag file;
+                             variable "tstop")
+
+			input file = output from density.f
+			angular velocity for ghosts = 0
+			back reaction from ghosts = 0
+			fixed point mass = 0 
+			damping = 5e-1
+			boundry = 0
+			external forces = 0 
+			binary dump every 1 timesteps 
+			File Position 1
+			max dynamic time = 20
+ 			  
+ 			 3- Run the code using script
+
+
+- Relaxing binary stars: 1- open "make_relax.f" and specify which
+  	   	            relaxed single stars you wish to use as
+  	   	            well as the output file name. Specify
+  	   	            initial separation (sep0) and "iread",
+  	   	            which is explained in program.
+
+			 2- Copy file in SPH/ and modify flag file
+                            accordingly. In particular, you need to
+                            set "iexf=8" (for binary relaxation) and
+                            specify the separation (sep0) to be read
+                            on the last line of the flagfile.
+ 
+			input file = output from make_relax.f
+			angular velocity for ghosts = 0
+			back reaction from ghosts = 0
+			fixed point mass = 0 
+			damping = 5e-1
+			boundry = 0
+			external forces = 8 ***
+			binary dump every 1 timesteps 
+			File Position 1
+			max dynamic time = 20
+			initial separation = ? units = Rsun
+
+			 3- Run the code using script. The values of the angular
+                            velocity are written on the terminal. You
+                            may want to keep these values in a file or
+                            something for future reference. The
+                            (average) value you get at the end of your
+                            relaxation is to be used later when we
+                            will put the stars in orbit around each
+                            other.
+
+ 
+                     
+- Binary stars in orbit: 1- open "make_binary.f" and specify which
+  	   	            relaxed binary you wish to use as well as
+  	   	            the output file name. Specify angular
+  	   	            velocity, as given by relaxation procedure
+  	   	            (search for "angvel").
+
+			 2- Copy file in SPH/ and modify flag file
+                            accordingly. 
+
+			input file = output from make_relax.f
+			angular velocity for ghosts = 0
+			back reaction from ghosts = 0
+			fixed point mass = 0 
+			damping = 0
+			boundry = 0
+			external forces = 0 
+			binary dump every 1 timesteps 
+			File Position 1
+			max dynamic time = 100 or so. Get at least one full orbit done.
+
+			 3- Run the code using script
+
+
+- Binary stars + ghosts: 1- open "make_two_ghosts.f" and specify which
+  	   	            relaxed binary you wish to use as well as
+  	   	            the output file name. Specify the radii of
+  	   	            boundaries (r1 and r2) as well as angular
+  	   	            velocity, as given by relaxation procedure
+  	   	            (search for "angvel") and eccentricity
+  	   	            ("ecc"). 
+
+			 2- Copy file in SPH/ and modify flag file
+                            accordingly. In particular, you need to
+                            set "ibound=5" and specify "rmind" and
+                            "rmind2" for the radii of the boundaries.
+                            Also, reset "iexf" and "damp" to zero and
+                            set the max. dyn. time to whatever you
+                            want. For large simulations, you may also
+                            want to set "nstep" to a larger number to
+                            limit the number of dumps.
+
+			input file = output from make_binary.f
+			angular velocity for ghosts = angvel
+			back reaction from ghosts = 1
+			fixed point mass = 1 
+			damping = 0
+			boundry = 5
+			external forces = 0 
+			binary dump every [1,5,10] timesteps 
+			File Position 1
+			max dynamic time = large
+			numbers at the bottom for boundary: rmind(=r1), rmind2(=r2)
+
+			 3- Run the code using script
+			    
+
+

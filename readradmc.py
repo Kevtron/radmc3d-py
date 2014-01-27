@@ -65,6 +65,9 @@ def B_lambda(T,wavelength):
 	return (2.0*h*c**2/wavelength**5)*(1.0/(np.exp(h*c/(wavelength*kb*T))-1.0)) 
 
 def readspectrum(filename = None, imagefile = None):
+	h=6.62606957e-27
+	c=299792458
+	kb=1.3806488e-16
 	if filename is None:
 		filename = 'spectrum.out'
 	if imagefile is None:
@@ -76,12 +79,11 @@ def readspectrum(filename = None, imagefile = None):
 	flux = np.zeros(nlam)
 	for i in range(nlam):
 		wavelength[i],flux[i] = lines[i+3].split()
-	wave=np.logspace(-8,1,num=3000)
-	plt.xlim(0.3e-6,1e-6)
-	#plt.ylim(10e-3,2)
-	plt.plot(wavelength*10**-6,flux/flux[0],'r-')
-	plt.plot(wave,B_lambda(18000,wave)/B_lambda(18000,0.3e-6),'b-')
-	plt.xlabel(r'$\lambda (\mu m)$')
+	wave=np.arange(1e-6,5,10000)
+	#plt.xlim(1e-6,1e-5)
+	#plt.semilogy(wavelength/1e-6,flux/flux[0],'r-')
+	plt.plot(wave,(2.0*h*c**2/wave**5)*(1.0/(np.exp(h*c/(wave*kb*4000))-1.0)),'r-')
+	plt.xlabel(r'$\lambda (m)$')
 	plt.ylabel(r'Flux')
 	plt.savefig(imagefile)
 #---------------------------------------------------------------------------
@@ -95,5 +97,5 @@ if __name__ == "__main__":
 	#readimage('image_V.out', 'image_V.png')
 	#readimage('image_R.out', 'image_R.png')
 	#readimage('image_I.out', 'image_I.png')
-	#readspectrum()
-	readimage()
+	readspectrum()
+	#readimage()

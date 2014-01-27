@@ -1,0 +1,90 @@
+SPH INSTRUCTIONS
+Written July 24, 2012
+
+This is a supplement to the BinaryModelInstructions file (however much will be repeated here) giving specific instructions for using the autoruntemplate. 
+
+Have a copy of the autoruntemplate directory in your home directory.
+Have a copy of the sourcefiles directory in your home directory for reference or modification.
+
+Copy the contents of the autoruntemplate directory to a new directory where you wish to run the code.
+
+First decide if you want to have: (iread: see below)
+	3-Only one star
+	2-A point mass for the second star
+	1-Two different stars
+	0-Two identical stars
+
+Unless you want two different stars, the subdirectory run1_2 can be ignored.
+
+
+In run1,
+-copy the star models you wish to use to this directory  
+-modify density3.nml:
+	-set itorq to 1 if you want to include torques in the output
+	-specify which models to use: filelast, fileenv
+	-set the initial smoothing length h0
+
+Do NOT change the name of the output file (fileout).
+If you wish to include point masses the source code will need to be modified and recompiled.
+
+-modify the FLAGFILE relaxsingle:
+	-if you chose to include point masses in your stars you can choose to keep the 		point mass fixed (ipmfix=1)
+	-set the damping (a value b/w 0 and 1.0 is usually good)
+	-set the max dynamic time; typical single star relaxation is for ~20 dynamical 		times	
+
+If you want two different stars you must repeat the previous instructions for the directory run1, in directory run1_2.
+
+
+In run2,
+-modify make_relax.nml:
+	-set itorq to 1 if you want to include torques in the output
+	-set the initial separation, sep0, of the stars (in units Rsun)
+	-set iread to match the first decision you made about your run
+		  -ex. set iread=1 for two different stars
+
+Do NOT change the name of the output file (file3).
+Do NOT change file1 or file2, they will be set automatically
+
+
+In run3,
+-modify make_binary.nml:
+	-set itorq to 1 if you want to include torques in the output
+	
+Do NOT change the name of the output file (file3).
+Do NOT change file1 or angvel, they will be set automatically
+
+-modify the FLAGFILE relaxbinary:
+	-set the max dynamic time to 100 or so dynamical times (get at least one full 	orbit done)	
+
+
+In run4,
+-modify make_two_ghosts2.nml:
+	-set itorq to 1 if you want to include torques in the output
+	-set the radii of the boundaries for star1 and star2, r1 and r2 (in units Rsun)
+	-set the eccentricity of the orbit (ecc)
+
+Do NOT change the name of the output file (file3).
+Do NOT change file1 or angvel, they will be set automatically
+
+-modify the FLAGFILE relaxghosts
+	-set the max dynamic time to something large (~200-250)
+	-set nstep (Binary Dump Every N Max Time Steps) to [1,5,10]. 
+	For large simulations you may want to set this to a larger number to limit the 	 number of dumps.
+
+
+Run autorun.sh using the command:
+nohup bash autorun.sh &
+
+Then press CTRL+c
+
+**IMPORTANT**: Record the process identifier that displays on the terminal. You will not be able to kill the script at a later time if you do not do this! (you won't know the correct instance of bash to kill)
+
+The process should now be running in the background and you can safetly log off sharcnet.
+
+Monitor runStatus and wait for the code to finish (expect this to take ~11 days, this time may vary greatly based on queued time and the specifics of the run).
+If there is a problem with the run and it is killed (or you kill it, etc..), make note of it in the runStatus file.
+In addition, density3 and make_two_ghosts2 can be run in parallel if desired (you may want to do this for stars greater than or equal to ~1.2 solar mass I have found).
+
+NOTE:
+Functionality for single stars, ghosts before run4, and point masses may be limited and modification of the source code will likely be needed to accomplish those setups.
+
