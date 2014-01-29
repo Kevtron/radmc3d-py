@@ -8,6 +8,7 @@
 #---------------------------------------------------------------------------
 #---------------------------------------------------------------------------
 #---------------------------------------------------------------------------
+from optparse import OptionParser
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -86,16 +87,14 @@ def readspectrum(filename = None, imagefile = None):
 	plt.xlabel(r'$\lambda (m)$')
 	plt.ylabel(r'Flux')
 	plt.savefig(imagefile)
-#---------------------------------------------------------------------------
-# 	Let's get fancy and call radmc3d from inside python
-#---------------------------------------------------------------------------
-#def makeimage():
 
 if __name__ == "__main__":
-	#readimage('image_U.out', 'image_U.png')
-	#readimage('image_B.out', 'image_B.png')
-	#readimage('image_V.out', 'image_V.png')
-	#readimage('image_R.out', 'image_R.png')
-	#readimage('image_I.out', 'image_I.png')
-	readspectrum()
-	#readimage()
+	usage = """ %prog [options] FILE """
+	parser = OptionParser(usage=usage, version = "%prog")
+	parser.add_option("-i", "--image", action = "store_true", dest = "im", default = False, help = "Read image")
+	parser.add_option("-s", "--spectrum", action = "store_true", dest = "spec", default = False, help = "read spectrum")
+	(options, args) = parser.parse_args()
+        if options.im == True:
+		readimage()
+	if options.spec == True:
+		readspectrum()
